@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "task-tracker"
+description = "Task Tracker CLI"
+version = "0.1.0"
+authors = [
+    { name = "Ulises Saucedo", email = "ulisesaucedo.se04@gmail.com" }
+]
+readme = "README.md"
+requires-python = ">= 3.8"
+dependencies = [
+    "rich",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff",
+]
+
+[project.scripts]
+task-cli = "main:main"
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "UP", "B", "SIM", "N", "I"]
+
+[tool.ruff.format]
+quote-style = "single"
+indent-style = "tab"
+docstring-code-format = true
+docstring-code-line-length = 20
