@@ -4,75 +4,61 @@ from pathlib import Path
 
 
 class TaskManager:
-	DATA_FILE = Path(__file__).resolve().parents[2] / 'tasks.json'
-
-	def __init__(self):
+	def __init__(self, path_file):
 		self.tasks = []
+		self.path_file = path_file
 		self.load_tasks()
 
 	def load_tasks(self):
-		if not Path(self.DATA_FILE).exists():
-			with open(self.DATA_FILE, 'w') as f:
+		if not Path(self.path_file).exists():
+			with open(self.path_file, 'w') as f:
 				json.dump([], f)
 
-		try:
-			with open(self.DATA_FILE, 'r+') as f:
-				file_data = json.load(f)
+		with open(self.path_file, 'r+') as f:
+			file_data = json.load(f)
 
-			self.tasks = file_data
-		except Exception as error:
-			raise Exception('Unknown error while loading tasks') from error
+		self.tasks = file_data
 
 	def save_tasks(self):
-		try:
-			with open(self.DATA_FILE, 'w') as f:
-				json.dump(self.tasks, f)
-		except Exception as error:
-			raise Exception('Unknown error while saving tasks') from error
+		with open(self.path_file, 'w') as f:
+			json.dump(self.tasks, f)
 
 	def add_task(self, task):
-		try:
-			self.tasks.append(
-				{
-					'id': len(self.tasks) + 1,
-					'description': task,
-					'status': 'todo',
-					'createdAt': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-					'updatedAt': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-				}
-			)
+		self.tasks.append(
+			{
+				'id': self.tasks[-1]['id'] + 1 if self.tasks else 1,
+				'description': task,
+				'status': 'todo',
+				'createdAt': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+				'updatedAt': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+			}
+		)
 
-			self.save_tasks()
+		self.save_tasks()
 
-			print(f'Task added successfully (ID: {self.tasks[-1]["id"]})')
+		print(f'Task added successfully (ID: {self.tasks[-1]["id"]})')
 
-			return self.tasks[-1]
-		except Exception as error:
-			raise Exception('Unknown error while adding task') from error
+		return self.tasks[-1]
 
 	def update_task(self, id, task):
-		try:
-			index = next((i for i, task in enumerate(self.tasks) if task['id'] == id), None)
+		index = next((i for i, task in enumerate(self.tasks) if task['id'] == id), None)
 
-			if index is not None:
-				self.tasks[index]['description'] = task
-				self.tasks[index]['updatedAt'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+		if index is not None:
+			self.tasks[index]['description'] = task
+			self.tasks[index]['updatedAt'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+		else:
+			raise Exception('Invalid task ID')
 
-			self.save_tasks()
+		self.save_tasks()
 
-			return self.tasks[index]
-		except Exception as error:
-			raise Exception('Unknown error while updating task') from error
+		return self.tasks[index]
 
 	def delete_task(self, id):
-		try:
-			self.tasks = list(filter(lambda task: task['id'] != id, self.tasks))
+		self.tasks = list(filter(lambda task: task['id'] != id, self.tasks))
 
-			self.save_tasks()
+		self.save_tasks()
 
-			return self.tasks
-		except Exception as error:
-			raise Exception('Unknown error while deleting task') from error
+		return self.tasks
 
 	def get_tasks(self):
 		return self.tasks
@@ -87,15 +73,14 @@ class TaskManager:
 		if status not in ['todo', 'in-progress', 'done']:
 			raise Exception('Invalid status')
 
-		try:
-			index = next((i for i, task in enumerate(self.tasks) if task['id'] == id), None)
+		index = next((i for i, task in enumerate(self.tasks) if task['id'] == id), None)
 
-			if index is not None:
-				self.tasks[index]['status'] = status
-				self.tasks[index]['updatedAt'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+		if index is not None:
+			self.tasks[index]['status'] = status
+			self.tasks[index]['updatedAt'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+		else:
+			raise Exception('Invalid task ID')
 
-			self.save_tasks()
+		self.save_tasks()
 
-			return self.tasks[index]
-		except Exception as error:
-			raise Exception('Unknown error while marking task') from error
+		return self.tasks[index]

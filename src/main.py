@@ -1,43 +1,36 @@
+from pathlib import Path
+
 from core.commands import parser
 from core.task_manager import TaskManager
 from ui.window import WindowCLI
 
-task_manager = TaskManager()
+task_manager = TaskManager(Path(__file__).resolve().parents[1] / 'tasks.json')
 window_cli = WindowCLI()
 
 
 def main():
 	args = parser.parse_args()
+	command = args.command
 
-	if args.command == 'add':
+	if command == 'add':
 		task_manager.add_task(args.description)
-
-		window_cli.render(task_manager.get_tasks())
-	elif args.command == 'update':
+	elif command == 'update':
 		task_manager.update_task(args.id, args.description)
-
-		window_cli.render(task_manager.get_tasks())
-	elif args.command == 'delete':
+	elif command == 'delete':
 		task_manager.delete_task(args.id)
-
-		window_cli.render(task_manager.get_tasks())
-	elif args.command == 'list':
+	elif command == 'list':
 		if args.status:
 			window_cli.render(task_manager.get_tasks_by_status(args.status))
-		else:
-			window_cli.render(task_manager.get_tasks())
-	elif args.command == 'mark-todo':
+
+			return
+	elif command == 'mark-todo':
 		task_manager.mark_task(args.id, 'todo')
-
-		window_cli.render(task_manager.get_tasks())
-	elif args.command == 'mark-in-progress':
+	elif command == 'mark-in-progress':
 		task_manager.mark_task(args.id, 'in-progress')
-
-		window_cli.render(task_manager.get_tasks())
-	elif args.command == 'mark-done':
+	elif command == 'mark-done':
 		task_manager.mark_task(args.id, 'done')
 
-		window_cli.render(task_manager.get_tasks())
+	window_cli.render(task_manager.get_tasks())
 
 
 if __name__ == '__main__':
