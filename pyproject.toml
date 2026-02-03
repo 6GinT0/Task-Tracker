@@ -21,6 +21,10 @@ dev = [
 [project.scripts]
 task-cli = "main:main"
 
+[tool.setuptools]
+package-dir = {"" = "src"}
+py-modules = ["main"]
+
 [tool.setuptools.packages.find]
 where = ["src"]
 include = ["*"]
