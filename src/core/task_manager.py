@@ -1,86 +1,75 @@
-import json
 from datetime import datetime
-from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+from core.enums import TaskStatus
+from core.storage import JsonStorage
 
 
 class TaskManager:
-	def __init__(self, path_file):
-		self.tasks = []
-		self.path_file = path_file
-		self.load_tasks()
+	def __init__(self, storage: JsonStorage):
+		self.storage = storage
+		self.tasks: List[Dict[str, Any]] = self.storage.load()
 
-	def load_tasks(self):
-		if not Path(self.path_file).exists():
-			with open(self.path_file, 'w') as f:
-				json.dump([], f)
+	def _save(self) -> None:
+		self.storage.save(self.tasks)
 
-		with open(self.path_file, 'r+') as f:
-			file_data = json.load(f)
-
-		self.tasks = file_data
-
-	def save_tasks(self):
-		with open(self.path_file, 'w') as f:
-			json.dump(self.tasks, f)
-
-	def add_task(self, task):
+	def add_task(self, description: str) -> Dict[str, Any]:
 		self.tasks.append(
 			{
 				'id': self.tasks[-1]['id'] + 1 if self.tasks else 1,
-				'description': task,
-				'status': 'todo',
+				'description': description,
+				'status': TaskStatus.TODO.value,
 				'createdAt': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
 				'updatedAt': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
 			}
 		)
 
-		self.save_tasks()
-
-		print(f'Task added successfully (ID: {self.tasks[-1]["id"]})')
+		self._save()
 
 		return self.tasks[-1]
 
-	def update_task(self, id, task):
+	def update_task(self, id: int, description: str) -> Dict[str, Any]:
 		index = next((i for i, task in enumerate(self.tasks) if task['id'] == id), None)
 
 		if index is not None:
-			self.tasks[index]['description'] = task
+			self.tasks[index]['description'] = description
 			self.tasks[index]['updatedAt'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 		else:
-			raise Exception('Invalid task ID')
+			raise ValueError(f'Task with ID {id} not found')
 
-		self.save_tasks()
+		self._save()
 
 		return self.tasks[index]
 
-	def delete_task(self, id):
+	def delete_task(self, id: int) -> List[Dict[str, Any]]:
 		self.tasks = list(filter(lambda task: task['id'] != id, self.tasks))
 
-		self.save_tasks()
+		self._save()
 
 		return self.tasks
 
-	def get_tasks(self):
+	def get_tasks(self) -> List[Dict[str, Any]]:
 		return self.tasks
 
-	def get_task(self, id):
+	def get_task(self, id: int) -> Optional[Dict[str, Any]]:
 		return next((task for task in self.tasks if task['id'] == id), None)
 
-	def get_tasks_by_status(self, status):
+	def get_tasks_by_status(self, status: str) -> List[Dict[str, Any]]:
 		return list(filter(lambda task: task['status'] == status, self.tasks))
 
-	def mark_task(self, id, status):
-		if status not in ['todo', 'in-progress', 'done']:
-			raise Exception('Invalid status')
+	def mark_task(self, id: int, status: TaskStatus) -> Dict[str, Any]:
+		# Validación extra por seguridad, aunque el Enum ayuda
+		if status not in [s.value for s in TaskStatus]:
+			raise ValueError(f'Invalid status: {status}')
 
 		index = next((i for i, task in enumerate(self.tasks) if task['id'] == id), None)
 
 		if index is not None:
-			self.tasks[index]['status'] = status
+			self.tasks[index]['status'] = status.value
 			self.tasks[index]['updatedAt'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 		else:
-			raise Exception('Invalid task ID')
+			raise ValueError(f'Task with ID {id} not found')
 
-		self.save_tasks()
+		self._save()
 
 		return self.tasks[index]
