@@ -8,3 +8,5 @@ tasks.json
 
 *egg-info
 .pytest**
+
+build/
