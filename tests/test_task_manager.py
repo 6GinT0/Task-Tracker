@@ -2,14 +2,17 @@ import json
 
 import pytest
 
+from src.core.enums import TaskStatus
+from src.core.storage import JsonStorage
 from src.core.task_manager import TaskManager
 
 
 @pytest.fixture
 def task_manager(tmp_path):
 	temp_file = tmp_path / 'tasks_test.json'
+	storage = JsonStorage(temp_file)
 
-	return TaskManager(temp_file)
+	return TaskManager(storage)
 
 
 def test_add_task(task_manager):
@@ -17,16 +20,17 @@ def test_add_task(task_manager):
 
 	assert task['description'] == 'Comprar leche'
 	assert task['id'] == 1
-	assert task['status'] == 'todo'
+	assert task['status'] == TaskStatus.TODO.value
 	assert len(task_manager.get_tasks()) == 1
 
 
 def test_data_persistence(tmp_path):
 	temp_file = tmp_path / 'tasks_test.json'
-	manager = TaskManager(temp_file)
+	storage = JsonStorage(temp_file)
+	manager = TaskManager(storage)
 	manager.add_task('Persistencia')
 
-	with open(temp_file) as f:
+	with open(temp_file, encoding='utf-8') as f:
 		data = json.load(f)
 
 	assert len(data) == 1
@@ -50,15 +54,15 @@ def test_delete_task(task_manager):
 
 def test_mark_task_status(task_manager):
 	task = task_manager.add_task('Tarea nueva')
-	task_manager.mark_task(task['id'], 'in-progress')
+	task_manager.mark_task(task['id'], TaskStatus.IN_PROGRESS)
 
-	assert task_manager.get_task(task['id'])['status'] == 'in-progress'
+	assert task_manager.get_task(task['id'])['status'] == TaskStatus.IN_PROGRESS.value
 
 
 def test_mark_task_invalid_status(task_manager):
 	task = task_manager.add_task('Tarea')
 
-	with pytest.raises(Exception) as excinfo:
+	with pytest.raises(ValueError) as excinfo:
 		task_manager.mark_task(task['id'], 'invalid-status')
 
 	assert 'Invalid status' in str(excinfo.value)
