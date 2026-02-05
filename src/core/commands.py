@@ -1,5 +1,7 @@
 import argparse
 
+from core.enums import TaskStatus
+
 parser = argparse.ArgumentParser(description='Task Tracker CLI')
 subparsers = parser.add_subparsers(dest='command')
 
@@ -19,7 +21,7 @@ list_parser.add_argument(
 	type=str,
 	help='Status of the task',
 	nargs='?',
-	choices=['todo', 'in-progress', 'done'],
+	choices=[status.value for status in TaskStatus],
 )
 
 mark_todo_parser = subparsers.add_parser('mark-todo')
