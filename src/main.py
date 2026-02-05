@@ -44,7 +44,7 @@ def main():
 		elif command == 'mark-done':
 			task_manager.mark_task(args.id, TaskStatus.DONE)
 
-		if command not in ['list', 'add', 'delete', 'update']:
+		if command not in ['list']:
 			window_cli.render(task_manager.get_tasks())
 	except ValueError as e:
 		print(f'Error: {e}')
